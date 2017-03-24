@@ -9,37 +9,33 @@ define([
 
     $(function () {
         Cryptpad.ready(function () {
+            console.log('IFRAME READY');
 
-
-            var onMessage = function (evt) {
-                var message = {};
-                if (evt.origin !== "https://acounts.cryptpad.fr") {
-                    message.error = "Invalid origin";
-                } else {
-
-                    message.value = "Auth cookie created";
+            var onAuthMessage = function (evt) {
+                var message = CryptPad_post.checkMessage(evt);
+                if (message.status === 0) { throw new Error("Invalid source origin"); }
+                if (evt.data && typeof(evt.data) === "object" && evt.data.getCookie) {
+                    message.status = 2;
+                    message.value = {"cookie": "ok"};
                 }
+                CryptPad_post.sendMessage(message);
             };
 
-            if (window.addEventListener) {
-                window.addEventListener("message", onMessage, false);
-            } else {
-                window.attachEvent("onmessage", onMessage);
-            }
-
-
-            });
-        });
-
-        window.addEventListener('storage', function (e) {
-            var key = e.key;
-            if (e.key !== Cryptpad.userHashKey) { return; }
-            var o = e.oldValue;
-            var n = e.newValue;
-            window.location.reload();
-            if (o && !n) { // disconnect
-                //redirectToMain();
-            }
+            CryptPad_post.registerHandler(onAuthMessage);
+            window.removeEventListener("message", CryptPad_post.onMessage);
+            CryptPad_post.buffer.forEach(CryptPad_post.sendMessage);
         });
     });
+
+    window.addEventListener('storage', function (e) {
+        var key = e.key;
+        if (e.key !== Cryptpad.userHashKey) { return; }
+        var o = e.oldValue;
+        var n = e.newValue;
+        window.location.reload();
+        if (o && !n) { // disconnect
+            //redirectToMain();
+        }
+    });
+});
 
