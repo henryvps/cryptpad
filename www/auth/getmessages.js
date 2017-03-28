@@ -32,7 +32,6 @@ CryptPad_post.checkMessage = function (evt) {
 
 CryptPad_post.onMessage = function (evt) {
     var message = CryptPad_post.    checkMessage(evt);
-    // evt.source.postMessage(message, evt.origin);
     CryptPad_post.buffer.push(message);
 };
 
